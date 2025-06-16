@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMA Support Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(to bottom, #1a1a1a, #111);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .login-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: linear-gradient(to bottom, #1a1a1a, #111);
+            z-index: 1000;
+        }
+
+        .login-container {
+            background: linear-gradient(145deg, #2a2a2a, #333);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header img {
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        .login-header h1 {
+            color: #fff;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #fff;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .login-button {
+            background: linear-gradient(to right, #ff4d4d, #e60000);
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .portal-page {
+            display: none;
+            height: 100vh;
+        }
+
+        .portal-page.active {
+            display: flex;
+        }
+
+        .sidebar {
+            background: linear-gradient(to bottom, #2d2d2d, #1c1c1c);
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            border-right: 1px solid #444;
+        }
+
+        .logo {
+            font-size: 22px;
+            color: #ff4d4d;
+            font-weight: 600;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 26px;
+            margin-right: 10px;
+        }
+
+        .menu-item {
+            background: linear-gradient(to right, #3b3b3b, #2a2a2a);
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+        }
+
+        .red-item {
+            background: linear-gradient(to right, #892828, #2a2a2a);
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+        }
+
+        .menu-item:hover {
+            background: linear-gradient(to right, #ff4d4d, #cc0000);
+            color: #fff;
+        }
+
+        .menu-item.active, .red-item.active {
+            background: linear-gradient(to right, #ff4d4d, #cc0000);
+            color: #fff;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .work-in-progress {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #1a1a1a, #141414);
+        }
+
+        .wip-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .wip-content h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #ff4d4d;
+        }
+
+        .wip-content p {
+            font-size: 16px;
+            color: #888;
+            margin: 5px 0;
+        }
+
+        .chat-header {
+            background: linear-gradient(to right, #b30000, #800000);
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        .chat-header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: linear-gradient(to bottom, #1a1a1a, #141414);
+        }
+
+        .message {
+            max-width: 70%;
+            margin-bottom: 16px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .bot-message {
+            background: linear-gradient(to bottom right, #333, #222);
+            color: #ddd;
+            align-self: flex-start;
+        }
+
+        .user-message {
+            background: linear-gradient(to bottom right, #ff4d4d, #b30000);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 16px 20px;
+            border-top: 1px solid #444;
+            background: linear-gradient(to right, #222, #1b1b1b);
+        }
+
+        .chat-input input {
+            flex: 1;
+            background-color: #2f2f2f;
+            border: none;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-right: 12px;
+        }
+
+        .chat-input button {
+            background: linear-gradient(to right, #ff4d4d, #e60000);
+            border: none;
+            padding: 12px 20px;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .customer-id {
+            background-color: #a8a6a6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .username {
+            color: #fff;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="login-page">
+        <div class="login-container">
+            <div class="login-header">
+                <img src="https://www.liblogo.com/img-logo/te4332tf4f-texas-instruments-logo-texas-instruments-aroundti-twitter.png" alt="Logo">
+                <h1>RMA Portal Login</h1>
+            </div>
+            <form id="loginForm" onsubmit="return validateLogin(event)">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="login-button">Login</button>
+                <div id="errorMessage" class="error-message">Invalid credentials!</div>
+            </form>
+        </div>
+    </div>
+
+    <div id="portalPage" class="portal-page">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="https://www.liblogo.com/img-logo/te4332tf4f-texas-instruments-logo-texas-instruments-aroundti-twitter.png" alt="Logo"/>
+                RMA
+            </div>
+            <div class="menu-item">Database Readiness</div>
+            <div class="red-item">RMA chatbot</div>
+            <div class="menu-item">RMA intelligence</div>
+            <div class="menu-item">Bug Metric</div>
+            <div class="menu-item">Report issue</div>
+        </div>
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>RMA Assistant</h1>
+                <div class="user-controls">
+                    <span class="username">Welcome, <span id="userDisplay"></span></span>
+                    <button class="customer-id" onclick="logout()">Logout</button>
+                </div>
+            </div>
+            <div class="messages" id="messages">
+                <div class="message bot-message">👋 Hi there! How can I assist you with your RMA today?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Enter your issue"/>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+        <div class="work-in-progress" id="workInProgress" style="display: none;">
+            <div class="chat-header">
+                <h1 id="menuTitle">Database Readiness</h1>
+                <div class="user-controls">
+                    <span class="username">Welcome, <span id="userDisplay2"></span></span>
+                    <button class="customer-id" onclick="logout()">Logout</button>
+                </div>
+            </div>
+            <div class="wip-content">
+                <img src="https://cdn-icons-png.flaticon.com/512/6811/6811047.png" alt="Work in Progress" style="width: 150px; margin-bottom: 20px;">
+                <h2>Work in Progress</h2>
+                <p>This feature is currently under development.</p>
+                <p>Coming Soon!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const username = localStorage.getItem('username');
+            if (username) {
+                showPortal(username);
+            } else {
+                showLogin();
+            }
+
+            const menuItems = document.querySelectorAll('.menu-item, .red-item');
+            const chatContainer = document.querySelector('.chat-container');
+            const workInProgress = document.getElementById('workInProgress');
+            const menuTitle = document.getElementById('menuTitle');
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const username = localStorage.getItem('username');
+            document.getElementById('userDisplay').textContent = username;
+                    document.getElementById('userDisplay2').textContent = username;
+
+                    if (this.classList.contains('red-item')) {
+                        chatContainer.style.display = 'flex';
+                        workInProgress.style.display = 'none';
+                    } else {
+                        chatContainer.style.display = 'none';
+                        workInProgress.style.display = 'flex';
+                        menuTitle.textContent = this.textContent;
+        }
+                });
+            });
+
+            document.querySelector('.red-item').classList.add('active');
+        });
+        function validateLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username.trim() && password.trim()) {
+                localStorage.setItem('username', username);
+                showPortal(username);
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+        }
+            return false;
+        }
+
+        function showLogin() {
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('portalPage').style.display = 'none';
+        }
+
+        function showPortal(username) {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('portalPage').style.display = 'flex';
+            document.getElementById('userDisplay').textContent = username;
+            document.getElementById('userDisplay2').textContent = username;
+        }
+
+        function logout() {
+            localStorage.removeItem('username');
+            showLogin();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById("userInput");
+            const msg = input.value.trim();
+            if (msg === "") return;
+            const messages = document.getElementById("messages");
+            const userMsg = document.createElement("div");
+            userMsg.className = "message user-message";
+            userMsg.textContent = msg;
+            messages.appendChild(userMsg);
+            input.value = "";
+            
+            setTimeout(() => {
+                const botMsg = document.createElement("div");
+                botMsg.className = "message bot-message";
+                botMsg.textContent = "🔧 Thank you! We're reviewing your issue and will get back to you shortly.";
+                messages.appendChild(botMsg);
+                messages.scrollTop = messages.scrollHeight;
+            }, 1000);
+            messages.scrollTop = messages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
