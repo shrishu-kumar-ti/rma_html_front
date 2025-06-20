@@ -502,6 +502,8 @@
                 const botMsg = document.createElement("div");
                 botMsg.className = "message bot-message";
                 botMsg.textContent = "🔧 Thank you! We're reviewing your issue and will get back to you shortly.";
+                messages.appendChild(botMsg);
+                messages.scrollTop = messages.scrollHeight;
             }
         }
     </script>
