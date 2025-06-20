@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RMA Support Portal</title>
+    <link rel="icon" href="https://www.liblogo.com/img-logo/te4332tf4f-texas-instruments-logo-texas-instruments-aroundti-twitter.png">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -97,10 +98,6 @@
         .portal-page {
             display: none;
             height: 100vh;
-        }
-
-        .portal-page.active {
-            display: flex;
         }
 
         .sidebar {
@@ -293,16 +290,16 @@
         <div class="login-container">
             <div class="login-header">
                 <img src="https://www.liblogo.com/img-logo/te4332tf4f-texas-instruments-logo-texas-instruments-aroundti-twitter.png" alt="Logo">
-                <h1>RMA Portal Login</h1>
+                <h1>RMA Support Portal Login</h1>
             </div>
             <form id="loginForm" onsubmit="return validateLogin(event)">
                 <div class="input-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" required>
+                    <input type="text" id="username" autocomplete="username" required>
                 </div>
                 <div class="input-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" required>
+                    <input type="password" id="password" autocomplete="current-password" required>
                 </div>
                 <button type="submit" class="login-button">Login</button>
                 <div id="errorMessage" class="error-message">Invalid credentials!</div>
@@ -314,28 +311,28 @@
         <div class="sidebar">
             <div class="logo">
                 <img src="https://www.liblogo.com/img-logo/te4332tf4f-texas-instruments-logo-texas-instruments-aroundti-twitter.png" alt="Logo"/>
-                RMA
+                RMA Assistant
             </div>
             <div class="menu-item">Database Readiness</div>
-            <div class="red-item">RMA chatbot</div>
+            <div class="menu-item">Bug Tracker</div>
+            <div class="red-item">RMA Chatbot</div>
             <div class="menu-item">RMA intelligence</div>
             <div class="menu-item">Bug Metric</div>
-            <div class="menu-item">Report issue</div>
         </div>
         <div class="chat-container">
             <div class="chat-header">
-                <h1>RMA Assistant</h1>
+                <h1>RMA Chatbot</h1>
                 <div class="user-controls">
                     <span class="username">Welcome, <span id="userDisplay"></span></span>
-                    <button class="customer-id" onclick="logout()">Logout</button>
+                    <button class="customer-id" type="button" onclick="logout()">Logout</button>
                 </div>
             </div>
             <div class="messages" id="messages">
                 <div class="message bot-message">👋 Hi there! How can I assist you with your RMA today?</div>
             </div>
             <div class="chat-input">
-                <input type="text" id="userInput" placeholder="Enter your issue"/>
-                <button onclick="sendMessage()">Send</button>
+                <input type="text" id="userInput" placeholder="Enter your issue(for now give me a project key like : MMWSOC_39XXP )"/>
+                <button type="button" onclick="sendMessage()">Send</button>
             </div>
         </div>
         <div class="work-in-progress" id="workInProgress" style="display: none;">
@@ -343,7 +340,7 @@
                 <h1 id="menuTitle">Database Readiness</h1>
                 <div class="user-controls">
                     <span class="username">Welcome, <span id="userDisplay2"></span></span>
-                    <button class="customer-id" onclick="logout()">Logout</button>
+                    <button class="customer-id" type="button" onclick="logout()">Logout</button>
                 </div>
             </div>
             <div class="wip-content">
@@ -375,8 +372,13 @@
                     this.classList.add('active');
 
                     const username = localStorage.getItem('username');
-            document.getElementById('userDisplay').textContent = username;
+                    document.getElementById('userDisplay').textContent = username;
                     document.getElementById('userDisplay2').textContent = username;
+                     // Add this block for Bug Metric
+                    if (this.textContent.trim() === "Bug Metric") {
+                        window.open("https://spotfire.sc.ti.com/spotfire/wp/analysis?file=/SC%20Quality/QEM/MAKE%20Dashboard%20Drilldown&waid=x55s2Ave4kuvY1dSPXwP3-2900468925M5pO&wavid=0", "_blank");
+                        return; // Prevent further UI changes
+                    }
 
                     if (this.classList.contains('red-item')) {
                         chatContainer.style.display = 'flex';
@@ -385,12 +387,26 @@
                         chatContainer.style.display = 'none';
                         workInProgress.style.display = 'flex';
                         menuTitle.textContent = this.textContent;
-        }
+                    }
                 });
             });
 
             document.querySelector('.red-item').classList.add('active');
+
+            // Allow Enter key to send chat message
+            document.getElementById('userInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Hide error message on input
+            document.getElementById('loginForm').addEventListener('input', function() {
+                document.getElementById('errorMessage').style.display = 'none';
+            });
         });
+
         function validateLogin(event) {
             event.preventDefault();
             const username = document.getElementById('username').value;
@@ -401,7 +417,7 @@
                 showPortal(username);
             } else {
                 document.getElementById('errorMessage').style.display = 'block';
-        }
+            }
             return false;
         }
 
@@ -422,6 +438,33 @@
             showLogin();
         }
 
+        // --- Chat message logic with local history (like dv file) ---
+        let rmaSessions = [];
+        let rmaSessionIndex = -1;
+
+        function updateRmaHistory() {
+            const currentHTML = document.getElementById("messages").innerHTML;
+            const titleEl = document.querySelector(".user-message");
+            const newTitle = titleEl?.innerText || "Untitled";
+            rmaSessions = JSON.parse(localStorage.getItem("rmaHistory") || "[]");
+            if (rmaSessionIndex !== -1 && rmaSessions.length > rmaSessionIndex) {
+                rmaSessions[rmaSessionIndex].messages = currentHTML;
+            } else if (titleEl && (!rmaSessions.length || rmaSessions[rmaSessions.length - 1].messages !== currentHTML)) {
+                rmaSessionIndex = rmaSessions.length;
+                rmaSessions.push({
+                    title: newTitle.length > 25 ? newTitle.slice(0, 20) + "..." : newTitle,
+                    messages: currentHTML,
+                });
+            }
+            localStorage.setItem("rmaHistory", JSON.stringify(rmaSessions));
+            updateRmaHistoryUI();
+        }
+
+        function updateRmaHistoryUI() {
+            // You can add a sidebar section for chat history if desired
+            // For now, just keep the logic for future extension
+        }
+
         function sendMessage() {
             const input = document.getElementById("userInput");
             const msg = input.value.trim();
@@ -432,15 +475,31 @@
             userMsg.textContent = msg;
             messages.appendChild(userMsg);
             input.value = "";
-            
-            setTimeout(() => {
-                const botMsg = document.createElement("div");
-                botMsg.className = "message bot-message";
-                botMsg.textContent = "🔧 Thank you! We're reviewing your issue and will get back to you shortly.";
-                messages.appendChild(botMsg);
-                messages.scrollTop = messages.scrollHeight;
-            }, 1000);
-            messages.scrollTop = messages.scrollHeight;
+
+            // Only fetch if input looks like a project key (e.g., all caps and numbers)
+            if (/^[A-Z0-9_]+$/i.test(msg)) {
+                fetch('http://localhost:8080/fetch_issues', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ project_key: msg })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const botMsg = document.createElement("div");
+                    botMsg.className = "message bot-message";
+                    botMsg.textContent =
+                        `Devices found: ${data.devices.join(', ')}\n` +
+                        `Total issues: ${data.issue_count}\n` +
+                        `${data.message}`;
+                    messages.appendChild(botMsg);
+                    messages.scrollTop = messages.scrollHeight;
+                })
+                .catch(error => console.error(error));
+            } else {
+                // Optionally, show a message or ignore
+            }
         }
     </script>
 </body>
